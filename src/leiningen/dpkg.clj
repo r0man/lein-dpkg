@@ -1,6 +1,5 @@
 (ns leiningen.dpkg
   (:refer-clojure :exclude (new read replace))
-  (:require [leiningen.jar :as jar])
   (:import [java.nio.file Files Paths]
            java.nio.file.attribute.FileAttribute
            java.io.File)
@@ -8,8 +7,8 @@
         [clojure.java.shell :only (sh with-sh-dir)]
         [clojure.string :only (blank? replace)]
         [leiningen.clean :only (delete-file-recursively)]
-        [leiningen.core.project :only (read)]
         [leiningen.new.templates :only (render-text)]
+        [leiningen.jar :only (get-jar-filename)]
         [leiningen.uberjar :only (uberjar)]))
 
 (defn make-path
@@ -47,7 +46,7 @@
 
 (defn deb-target-file
   "Returns the filename of the debian package the target directory."
-  [project] (replace (jar/get-jar-filename project) #"jar$" "deb"))
+  [project] (replace (get-jar-filename project) #"jar$" "deb"))
 
 (defn deb-target-symlink
   "Returns the filename of the uberjar in the target \"debian\" directory."
@@ -57,7 +56,7 @@
 (defn deb-target-uberjar
   "Returns the filename of the uberjar in the target debian directory."
   [project]  
-  (str (file (deb-java-dir project) (.getName (File. (jar/get-jar-filename project :uberjar))))))
+  (str (file (deb-java-dir project) (.getName (File. (get-jar-filename project :uberjar))))))
 
 (defn build-package [project]
   (with-sh-dir (:root project)
@@ -88,7 +87,7 @@
   "Copy the uberjar to the debian target directory."
   [project]
   (.mkdirs (file (deb-java-dir project)))
-  (copy (file (jar/get-jar-filename project :uberjar))
+  (copy (file (get-jar-filename project :uberjar))
         (file (deb-target-uberjar project))))
 
 (defn symlink-uberjar
@@ -118,6 +117,5 @@
   "Build the Debian package."
   [project & [command]]
   (condp = command
-    "build" (build project)
     "clean" (clean project)
     (build project)))

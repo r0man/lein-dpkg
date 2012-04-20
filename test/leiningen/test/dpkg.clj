@@ -1,9 +1,9 @@
 (ns leiningen.test.dpkg
   (:refer-clojure :exclude (read replace))
   (:import java.io.File java.nio.file.Path)
-  (:require [leiningen.jar :as jar])
   (:use [clojure.java.io :only (file)]
         [leiningen.core.project :only (read)]
+        [leiningen.jar :only (get-jar-filename)]
         [leiningen.uberjar :only (uberjar)]        
         clojure.test
         leiningen.dpkg))
@@ -11,8 +11,8 @@
 (def project (read))
 
 (deftest test-build
-  (build project)
-  (is (not (.exists (File. (deb-target-file project))))))
+  (doall (build project))
+  (is (.exists (File. (deb-target-file project)))))
 
 (deftest test-clean
   (clean project)
@@ -50,7 +50,7 @@
          (deb-target-symlink project))))
 
 (deftest test-deb-target-uberjar
-  (is (= (str (file (deb-java-dir project) (.getName (File. (jar/get-jar-filename project :uberjar)))))
+  (is (= (str (file (deb-java-dir project) (.getName (File. (get-jar-filename project :uberjar)))))
          (deb-target-uberjar project))))
 
 (deftest test-make-path
