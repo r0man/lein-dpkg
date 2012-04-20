@@ -1,0 +1,8 @@
+Package: {{package}}
+Version: {{version}}
+Section: java
+Priority: optional
+Maintainer: {{maintainer}}
+Architecture: {{architecture}}
+Depends: {{depends}}
+Description: {{description}}
