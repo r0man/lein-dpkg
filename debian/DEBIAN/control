@@ -1,8 +1,8 @@
-Package: {{package}}
+Package: {{name}}
 Version: {{version}}
 Section: java
 Priority: optional
-Maintainer: {{maintainer}}
-Architecture: {{architecture}}
+Maintainer: Roman Scherer roman.scherer@nugg.ad
+Architecture: all
 Depends: {{depends}}
 Description: {{description}}

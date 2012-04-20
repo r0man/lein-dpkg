@@ -6,7 +6,7 @@
            java.io.File)
   (:use [clojure.java.io :only (copy file)]
         [clojure.java.shell :only (sh with-sh-dir)]
-        [clojure.string :only (replace)]
+        [clojure.string :only (blank? replace)]
         [leiningen.clean :only (delete-file-recursively)]
         [leiningen.core.project :only (read)]
         [leiningen.new.templates :only (render-text)]
@@ -61,15 +61,19 @@
 
 (defn build-package [project]
   (with-sh-dir (:root project)
-    (print (:out (sh "dpkg-deb" "--build" (deb-target-dir project))))
-    (flush)))
+    (let [result (sh "dpkg-deb" "--build" (deb-target-dir project))]
+      (if-not (blank? (:err result))
+        (println (:err result)))
+      (if-not (= (:exit result) 0)
+        (throw (Exception. (:err result)))))))
 
 (defn rename-package
   "Rename the \"debian.deb\" file in the target directory to the same
   name as the jar file, but with a \"deb\" extension. "
   [project]
-  (.renameTo (file (:target-path project) "debian.deb")
-             (file (deb-target-file project))))
+  (let [target (file (deb-target-file project))]
+    (.renameTo (file (:target-path project) "debian.deb") target)
+    (println (str "Created " target))))
 
 (defn render-templates
   "Render templates and write them to the target directory."
@@ -114,5 +118,6 @@
   "Build the Debian package."
   [project & [command]]
   (condp = command
+    "build" (build project)
     "clean" (clean project)
     (build project)))
