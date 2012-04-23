@@ -1,4 +1,4 @@
-(defproject lein-dpkg "0.1.0-SNAPSHOT"
+(defproject lein-dpkg "0.0.1-SNAPSHOT"
   :description "Leiningen plugin to build Debian packages."
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
