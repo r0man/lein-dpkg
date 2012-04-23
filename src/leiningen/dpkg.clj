@@ -1,7 +1,6 @@
 (ns leiningen.dpkg
   (:refer-clojure :exclude (new read replace))
-  (:import [java.nio.file Files Paths]
-           java.nio.file.attribute.FileAttribute
+  (:import [java.nio.file Files LinkOption Paths]
            java.io.File)
   (:use [clojure.java.io :only (copy file)]
         [clojure.java.shell :only (sh with-sh-dir)]
@@ -13,15 +12,7 @@
 
 (defn make-path
   "Convert `path` to a java.nio.file.Path object."
-  [path] (Paths/get path (into-array String [])))
-
-(defn symlink
-  "Create a symbolic link from `source` to `target`."
-  [source target]
-  (Files/createSymbolicLink
-   (make-path target)
-   (make-path source)
-   (into-array FileAttribute [])))
+  [path] (Paths/get (str path) (into-array String [])))
 
 (defn deb-java-dir
   "Returns the Java directory on Debian systems."
@@ -48,19 +39,14 @@
   "Returns the filename of the debian package the target directory."
   [project] (replace (get-jar-filename project) #"jar$" "deb"))
 
-(defn deb-target-symlink
-  "Returns the filename of the uberjar in the target \"debian\" directory."
-  [project]
-  (str (file (deb-java-dir project) (str (replace (:name project) ".*/" "") ".jar"))))
-
 (defn deb-target-uberjar
   "Returns the filename of the uberjar in the target debian directory."
   [project]  
-  (str (file (deb-java-dir project) (.getName (File. (get-jar-filename project :uberjar))))))
+  (str (file (deb-java-dir project) (str (replace (:name project) ".*/" "") ".jar"))))
 
 (defn build-package [project]
   (with-sh-dir (:root project)
-    (let [result (sh "dpkg-deb" "--build" (deb-target-dir project))]
+    (let [result (sh "fakeroot" "dpkg-deb" "--build" (deb-target-dir project))]
       (if-not (blank? (:err result))
         (println (:err result)))
       (if-not (= (:exit result) 0)
@@ -79,9 +65,11 @@
   [project]
   (doseq [source (file-seq (file (:root project) "debian"))
           :when (.isFile source)
-          :let [target (deb-target-path project source)]]
+          :let [target (deb-target-path project source)
+                permissions (Files/getPosixFilePermissions (make-path source) (into-array LinkOption []))]]
     (.mkdirs (.getParentFile (file target)))
-    (spit target (render-text (slurp source) project))))
+    (spit target (render-text (slurp source) project))
+    (Files/setPosixFilePermissions (make-path target) permissions)))
 
 (defn copy-uberjar
   "Copy the uberjar to the debian target directory."
@@ -89,13 +77,6 @@
   (.mkdirs (file (deb-java-dir project)))
   (copy (file (get-jar-filename project :uberjar))
         (file (deb-target-uberjar project))))
-
-(defn symlink-uberjar
-  "Symlink the versioned uberjar in the debian target directory."
-  [project]
-  (let [target (deb-target-symlink project)]
-    (.delete (File. target))
-    (symlink (deb-target-uberjar project) target)))
 
 (defn clean
   "Remove the \"debian\" directory from the project's target-path."
@@ -108,7 +89,6 @@
     (clean)
     (uberjar)
     (copy-uberjar)
-    (symlink-uberjar)
     (render-templates)
     (build-package)
     (rename-package)))

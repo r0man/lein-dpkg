@@ -45,19 +45,9 @@
   (is (= (str (file (deb-target-dir project) "x"))
          (deb-target-path project (file (deb-source-dir project) "x")))))
 
-(deftest test-deb-target-symlink
-  (is (= (str (file (deb-java-dir project) "lein-dpkg.jar"))
-         (deb-target-symlink project))))
-
 (deftest test-deb-target-uberjar
-  (is (= (str (file (deb-java-dir project) (.getName (File. (get-jar-filename project :uberjar)))))
+  (is (= (str (file (deb-java-dir project) "lein-dpkg.jar"))
          (deb-target-uberjar project))))
 
 (deftest test-make-path
   (is (instance? Path (make-path "x"))))
-
-(deftest test-symlink-uberjar
-  (uberjar project)
-  (copy-uberjar project)
-  (symlink-uberjar project)
-  (is (.exists (File. (deb-target-symlink project)))))
