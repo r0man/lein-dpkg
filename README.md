@@ -19,19 +19,19 @@ Add the Debian control file debian/DEBIAN/control
     Depends: {{depends}}
     Description: {{description}}
 
-Build the project via dpkg.
+Build the Debian package.
 
     lein dpkg build
 
-Install the project via dpkg.
+Install the Debian package.
 
     lein dpkg install
 
-Purge the project via dpkg.
+Purge the Debian package.
 
     lein dpkg purge
 
-Remove the project via dpkg.
+Remove the Debian package.
 
     lein dpkg remove
 
