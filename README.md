@@ -1,6 +1,6 @@
 # lein-dpkg
 
-Leiningen dpkg plugin.
+Leiningen plugin for the Debian package management system.
 
 ## Installation
 
