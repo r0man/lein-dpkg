@@ -2,7 +2,7 @@ Package: {{name}}
 Version: {{version}}
 Section: java
 Priority: optional
-Maintainer: Roman Scherer roman.scherer@nugg.ad
+Maintainer: Roman Scherer roman.scherer@burningswell.com
 Architecture: all
 Depends: {{depends}}
 Description: {{description}}
