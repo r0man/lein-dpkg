@@ -14,7 +14,7 @@ Add the Debian control file debian/DEBIAN/control
     Version: {{version}}
     Section: java
     Priority: optional
-    Maintainer: Roman Scherer roman.scherer@burningswell.com
+    Maintainer: maintainer maintainer@example.com
     Architecture: all
     Depends: {{depends}}
     Description: {{description}}
