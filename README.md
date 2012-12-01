@@ -1,15 +1,42 @@
 # lein-dpkg
 
-I'm an app. Or maybe I'm a library? I haven't decided yet. 
+Leiningen dpkg plugin.
 
-The choice is up to you!
+## Installation
+
+Via Clojars: https://clojars.org/lein-dpkg
 
 ## Usage
 
-FIXME
+Add the Debian control file debian/DEBIAN/control
+
+    Package: {{name}}
+    Version: {{version}}
+    Section: java
+    Priority: optional
+    Maintainer: Roman Scherer roman.scherer@burningswell.com
+    Architecture: all
+    Depends: {{depends}}
+    Description: {{description}}
+
+Build the project via dpkg.
+
+    lein dpkg build
+
+Install the project via dpkg.
+
+    lein dpkg install
+
+Purge the project via dpkg.
+
+    lein dpkg purge
+
+Remove the project via dpkg.
+
+    lein dpkg remove
 
 ## License
 
-Copyright © 2012 FIXME
+Copyright © 2012 Roman Scherer
 
 Distributed under the Eclipse Public License, the same as Clojure.
