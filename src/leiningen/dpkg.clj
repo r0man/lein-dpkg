@@ -1,14 +1,14 @@
 (ns leiningen.dpkg
-  (:refer-clojure :exclude (new read replace))
+  (:refer-clojure :exclude [new read replace remove])
   (:import [java.nio.file Files LinkOption Paths]
            java.io.File)
-  (:use [clojure.java.io :only (copy file)]
-        [clojure.java.shell :only (sh with-sh-dir)]
-        [clojure.string :only (blank? replace)]
-        [leiningen.clean :only (delete-file-recursively)]
-        [leiningen.new.templates :only (render-text)]
-        [leiningen.jar :only (get-jar-filename)]
-        [leiningen.uberjar :only (uberjar)]))
+  (:require [clojure.java.io :refer [copy file]]
+            [clojure.java.shell :refer [sh with-sh-dir]]
+            [clojure.string :refer [blank? replace]]
+            [leiningen.clean :refer [delete-file-recursively]]
+            [leiningen.jar :refer [get-jar-filename]]
+            [leiningen.new.templates :refer [render-text]]
+            [leiningen.uberjar :refer [uberjar]]))
 
 (defn make-path
   "Convert `path` to a java.nio.file.Path object."
@@ -19,7 +19,7 @@
   [project]
   (->> (replace (or (:java-dir (:dpkg project))
                     (str (file "usr" "share" "java")))
-                (re-pattern (str "^" File/separator)) "")       
+                (re-pattern (str "^" File/separator)) "")
        (file (:target-path project) "debian") str))
 
 (defn deb-source-dir
@@ -41,16 +41,20 @@
 
 (defn deb-target-uberjar
   "Returns the filename of the uberjar in the target debian directory."
-  [project]  
+  [project]
   (str (file (deb-java-dir project) (str (replace (:name project) ".*/" "") ".jar"))))
+
+(defn sh! [cmd & args]
+  (let [result (apply sh cmd args)]
+    (when-not (blank? (:err result))
+      (print (:err result))
+      (flush))
+    (if-not (= (:exit result) 0)
+      (throw (Exception. (:err result))))))
 
 (defn build-package [project]
   (with-sh-dir (:root project)
-    (let [result (sh "fakeroot" "dpkg-deb" "--build" (deb-target-dir project))]
-      (if-not (blank? (:err result))
-        (println (:err result)))
-      (if-not (= (:exit result) 0)
-        (throw (Exception. (:err result)))))))
+    (let [result (sh! "fakeroot" "dpkg-deb" "--build" (deb-target-dir project))])))
 
 (defn rename-package
   "Rename the \"debian.deb\" file in the target directory to the same
@@ -93,9 +97,28 @@
     (build-package)
     (rename-package)))
 
+(defn install
+  "Install the Debian package."
+  [project]
+  (if-not (.exists (file (deb-target-file project)))
+    (build project))
+  (sh! "sudo" "dpkg" "--install" (deb-target-file project)))
+
+(defn remove
+  "Remove the Debian package."
+  [project] (sh! "sudo" "dpkg" "--remove" (:name project)))
+
+(defn purge
+  "Purge the Debian package."
+  [project] (sh! "sudo" "dpkg" "--purge" (:name project)))
+
 (defn dpkg
   "Build the Debian package."
   [project & [command]]
-  (condp = command
+  (case command
+    "build" (build project)
     "clean" (clean project)
+    "install" (install project)
+    "purge" (purge project)
+    "remove" (remove project)
     (build project)))
