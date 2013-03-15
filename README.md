@@ -1,4 +1,4 @@
-# lein-dpkg
+# lein-dpkg [![Build Status](https://travis-ci.org/r0man/lein-dpkg.png)](https://travis-ci.org/r0man/lein-dpkg)
 
 Leiningen plugin for the Debian package management system.
 
