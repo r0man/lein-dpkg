@@ -1,10 +1,10 @@
-(ns leiningen.test.dpkg
+(ns leiningen.dpkg-test
   (:refer-clojure :exclude (read replace))
   (:import java.io.File java.nio.file.Path)
   (:use [clojure.java.io :only (file)]
         [leiningen.core.project :only (read)]
         [leiningen.jar :only (get-jar-filename)]
-        [leiningen.uberjar :only (uberjar)]        
+        [leiningen.uberjar :only (uberjar)]
         clojure.test
         leiningen.dpkg))
 
