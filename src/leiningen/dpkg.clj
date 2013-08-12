@@ -50,11 +50,16 @@
       (print (:err result))
       (flush))
     (if-not (= (:exit result) 0)
-      (throw (Exception. (:err result))))))
+      (throw (Exception. (:err result))))
+    result))
 
 (defn build-package [project]
   (with-sh-dir (:root project)
-    (let [result (sh! "fakeroot" "dpkg-deb" "--build" (deb-target-dir project))])))
+    (let [script (str (:root project) "/.lein-dpkg")]
+      (when (.exists (file script))
+        (print (:out (sh! script)))
+        (flush)))
+    (sh! "fakeroot" "dpkg-deb" "--build" (deb-target-dir project))))
 
 (defn rename-package
   "Rename the \"debian.deb\" file in the target directory to the same
@@ -80,7 +85,7 @@
   [project]
   (.mkdirs (file (deb-java-dir project)))
   (copy (file (get-jar-filename project :uberjar))
-        (file (deb-target-uberjar project))))
+      (file (deb-target-uberjar project))))
 
 (defn clean
   "Remove the \"debian\" directory from the project's target-path."
