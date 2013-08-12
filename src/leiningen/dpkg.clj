@@ -1,6 +1,7 @@
 (ns leiningen.dpkg
   (:refer-clojure :exclude [new read replace remove])
   (:import [java.nio.file Files LinkOption Paths]
+           [org.apache.commons.io FileUtils]
            java.io.File)
   (:require [clojure.java.io :refer [copy file]]
             [clojure.java.shell :refer [sh with-sh-dir]]
@@ -14,11 +15,10 @@
   "Convert `path` to a java.nio.file.Path object."
   [path] (Paths/get (str path) (into-array String [])))
 
-(defn deb-java-dir
-  "Returns the Java directory on Debian systems."
-  [project]
-  (->> (replace (or (:java-dir (:dpkg project))
-                    (str (file "usr" "share" "java")))
+(defn deb-path
+  "Returns the project directory on Debian systems."
+  [project & args]
+  (->> (replace (str (apply file "usr" "lib" (:name project) args))
                 (re-pattern (str "^" File/separator)) "")
        (file (:target-path project) "debian") str))
 
@@ -42,7 +42,7 @@
 (defn deb-target-uberjar
   "Returns the filename of the uberjar in the target debian directory."
   [project]
-  (str (file (deb-java-dir project) (str (replace (:name project) ".*/" "") ".jar"))))
+  (str (file (deb-path project "lib") (str (replace (:name project) ".*/" "") ".jar"))))
 
 (defn sh! [cmd & args]
   (let [result (apply sh cmd args)]
@@ -55,6 +55,11 @@
 
 (defn build-package [project]
   (with-sh-dir (:root project)
+    (FileUtils/copyFile
+     (file (:root project) "project.clj")
+     (file (deb-path project "project.clj")))
+    (doseq [dir (map file (concat (:source-paths project) (:resource-paths project))) :when (.exists dir)]
+      (FileUtils/copyDirectory dir (file (deb-path project (.getName dir)))))
     (let [script (str (:root project) "/.lein-dpkg")]
       (when (.exists (file script))
         (print (:out (sh! script)))
@@ -83,7 +88,7 @@
 (defn copy-uberjar
   "Copy the uberjar to the debian target directory."
   [project]
-  (.mkdirs (file (deb-java-dir project)))
+  (.mkdirs (file (deb-path project "lib")))
   (copy (file (get-jar-filename project :uberjar))
       (file (deb-target-uberjar project))))
 
