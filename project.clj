@@ -1,4 +1,4 @@
-(defproject lein-dpkg "0.1.2"
+(defproject lein-dpkg "0.1.3-SNAPSHOT"
   :description "Leiningen plugin for the Debian package management system"
   :url "https://github.com/r0man/lein-dpkg"
   :license {:name "Eclipse Public License"
