@@ -10,6 +10,14 @@
 
 (def project (read))
 
+(deftest test-parse-version
+  (is (= {:major "0", :minor "1", :patch "2", :suffix "SNAPSHOT"}
+         (parse-version "0.1.2-SNAPSHOT"))))
+
+(deftest test-format-version
+  (= "0.1.2-SNAPSHOT" (format-version {:major "0", :minor "1", :patch "2", :suffix "SNAPSHOT"}))
+  (= "0.1.2-1123-SNAPSHOT" (format-version {:major "0", :minor "1", :patch "2", :incremental "1123" :suffix "SNAPSHOT"})))
+
 (deftest test-build
   (doall (build project))
   (is (.exists (File. (deb-target-file project)))))

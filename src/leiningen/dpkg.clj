@@ -5,11 +5,24 @@
            java.io.File)
   (:require [clojure.java.io :refer [copy file]]
             [clojure.java.shell :refer [sh with-sh-dir]]
-            [clojure.string :refer [blank? replace]]
+            [clojure.string :refer [blank? join replace]]
             [leiningen.clean :refer [delete-file-recursively]]
             [leiningen.jar :refer [get-jar-filename]]
             [leiningen.new.templates :refer [render-text]]
             [leiningen.uberjar :refer [uberjar]]))
+
+(defn parse-version [s]
+  (if-let [m (re-matches #"(\d+)\.(\d+)\.(\d+)(-(SNAPSHOT))?" (str s))]
+    {:major (nth m 1)
+     :minor (nth m 2)
+     :patch (nth m 3)
+     :suffix (nth m 5)}))
+
+(defn format-version [version]
+  (let [{:keys [major minor patch incremental suffix]} version]
+    (str (join "." (clojure.core/remove blank? [major minor patch]))
+         (if incremental (str "-" incremental))
+         (if suffix (str "-" suffix)))))
 
 (defn make-path
   "Convert `path` to a java.nio.file.Path object."

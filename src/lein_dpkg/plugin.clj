@@ -1,12 +1,20 @@
-(ns lein-dpkg.plugin)
+(ns lein-dpkg.plugin
+  (:require [clojure.string :refer [blank?]]
+            [leiningen.dpkg :as dpkg]))
 
 (defn incremental? [project]
   (and (re-matches #".*-SNAPSHOT" (:version project))
        (not (nil? (-> project :dpkg :incremental)))))
 
 (defn incremental-version [project]
-  (if-let [env (-> project :dpkg :incremental)]
-    (str (:version project) "-" (or (System/getenv env) "1"))))
+  (let [env (or (-> project :dpkg :incremental) "BUILD_NUMBER")
+        incremental (System/getenv env)]
+    (if-not (blank? incremental)
+      (-> (:version project)
+          (dpkg/parse-version)
+          (assoc :incremental incremental)
+          (dpkg/format-version))
+      (:version project))))
 
 (defn middleware [project]
   (if (incremental? project)
