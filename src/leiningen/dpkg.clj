@@ -4,6 +4,7 @@
            [org.apache.commons.io FileUtils]
            java.io.File)
   (:require [clojure.java.io :refer [copy file]]
+            [leiningen.ring.uberjar :as ruberjar]
             [clojure.java.shell :refer [sh with-sh-dir]]
             [clojure.string :refer [blank? join replace]]
             [leiningen.clean :refer [delete-file-recursively]]
@@ -120,6 +121,17 @@
     (build-package)
     (rename-package)))
 
+(defn build-ring
+  "Build the Debian package for a ring project."
+  [project]
+  (doto project
+    (clean)
+    (ruberjar/uberjar)
+    (copy-uberjar)
+    (render-templates)
+    (build-package)
+    (rename-package)))
+
 (defn install
   "Install the Debian package."
   [project]
@@ -140,6 +152,7 @@
   [project & [command]]
   (case command
     "build" (build project)
+    "build-ring" (build-ring project)
     "clean" (clean project)
     "install" (install project)
     "purge" (purge project)
