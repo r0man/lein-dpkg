@@ -1,0 +1,13 @@
+Format: 1.8
+Date: {{date}}
+Source: {{name}} 
+Binary: {{name}}
+Architecture: all
+Version: {{version}}
+Distribution: demo
+Maintainer: Lein <test@leindpkg.com>
+Description: whatever description
+Changes:
+ * new version system
+Files:
+   {{md5}} {{size}} main important {{deb-file}}

@@ -53,6 +53,12 @@
   "Returns the filename of the debian package the target directory."
   [project] (replace (get-jar-filename project) #"jar$" "deb"))
 
+(defn deb-target-changes-file
+  "Returns the filename of the changes file in the target directory."
+  [project] (replace (get-jar-filename project) #"jar$" "changes"))
+
+(def deb-changes-template "debian/DEBIAN/template.changes")
+
 (defn deb-target-uberjar
   "Returns the filename of the uberjar in the target debian directory."
   [project]
@@ -99,6 +105,26 @@
     (spit target (render-text (slurp source) project))
     (Files/setPosixFilePermissions (make-path target) permissions)))
 
+(defn file-md5
+  [f]
+  (let [fis (new java.io.FileInputStream (file f))
+        md5 (org.apache.commons.codec.digest.DigestUtils/md5Hex fis)]
+        (.close fis)
+        md5))
+
+(defn render-changes
+  "Render templates and write them to the target directory."
+  [project]
+  (assert (.exists (file deb-changes-template)))
+  (let [debianPath (deb-target-file project)
+        outputFile (deb-target-changes-file project) 
+        size (.length (file debianPath))
+        md5 (file-md5 debianPath)
+        date (.toString (org.joda.time.DateTime/now) (org.joda.time.format.ISODateTimeFormat/dateTime))
+        deb-file (.getName (file debianPath))
+        project (merge project {:size size :md5 md5 :date date :deb-file deb-file})]
+    (spit outputFile (render-text (slurp deb-changes-template) project))))
+
 (defn copy-uberjar
   "Copy the uberjar to the debian target directory."
   [project]
@@ -119,7 +145,8 @@
     (copy-uberjar)
     (render-templates)
     (build-package)
-    (rename-package)))
+    (rename-package)
+    (render-changes)))
 
 (defn build-ring
   "Build the Debian package for a ring project."
@@ -130,7 +157,9 @@
     (copy-uberjar)
     (render-templates)
     (build-package)
-    (rename-package)))
+    (rename-package)
+    (render-changes)
+    ))
 
 (defn install
   "Install the Debian package."
