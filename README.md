@@ -19,6 +19,23 @@ Add the Debian control file debian/DEBIAN/control
     Depends: {{depends}}
     Description: {{description}}
 
+Add the template for the changes file debian/DEBIAN/template.changes
+
+
+    Format: 1.8
+    Date: {{date}}
+    Source: {{name}} 
+    Binary: {{name}}
+    Architecture: all
+    Version: {{version}}
+    Distribution: demo
+    Maintainer: Lein <test@leindpkg.com>
+    Description: whatever description
+    Changes:
+     * new version system
+    Files:
+       {{md5}} {{size}} main important {{deb-file}}
+
 Build the Debian package.
 
     lein dpkg build

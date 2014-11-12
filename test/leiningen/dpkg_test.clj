@@ -22,6 +22,10 @@
   (doall (build project))
   (is (.exists (File. (deb-target-file project)))))
 
+(deftest test-build-changes
+  (doall (build project))
+  (is (.exists (File. (deb-target-changes-file project)))))
+
 (deftest test-clean
   (clean project)
   (is (not (.exists (File. (deb-target-dir project))))))
