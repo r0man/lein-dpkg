@@ -1,12 +1,13 @@
 (ns leiningen.dpkg-test
   (:refer-clojure :exclude [new read replace remove])
-  (:import java.io.File java.nio.file.Path)
-  (:use [clojure.java.io :only (file)]
-        [leiningen.core.project :only (read)]
-        [leiningen.jar :only (get-jar-filename)]
-        [leiningen.uberjar :only (uberjar)]
-        clojure.test
-        leiningen.dpkg))
+  (:import java.io.File
+           java.nio.file.Path)
+  (:require [clojure.java.io :refer [file]]
+            [clojure.test :refer :all]
+            [leiningen.core.project :refer [read]]
+            [leiningen.dpkg :refer :all]
+            [leiningen.jar :refer [get-jar-filename]]
+            [leiningen.uberjar :refer [uberjar]]))
 
 (def project (read))
 
@@ -32,11 +33,11 @@
   (is (.exists (File. (deb-target-uberjar project)))))
 
 (deftest test-deb-path
-  (is (= (str (file (:target-path project) "debian" "usr" "lib" (:name project)))
+  (is (= (str (file (:target-path project) "debian" "usr" "lib" (:group project) (:name project)))
          (deb-path project)))
-  (is (= (str (file (:target-path project) "debian" "usr" "lib" (:name project) "lib"))
+  (is (= (str (file (:target-path project) "debian" "usr" "lib" (:group project) (:name project) "lib"))
          (deb-path project "lib")))
-  (is (= (str (file (:target-path project) "debian" "usr" "lib" (:name project) "src"))
+  (is (= (str (file (:target-path project) "debian" "usr" "lib" (:group project) (:name project) "src"))
          (deb-path project "src"))))
 
 (deftest test-deb-source-dir

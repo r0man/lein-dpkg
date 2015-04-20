@@ -1,8 +1,8 @@
 (ns leiningen.dpkg
   (:refer-clojure :exclude [new read replace remove])
-  (:import [java.nio.file Files LinkOption Paths]
-           [org.apache.commons.io FileUtils]
-           java.io.File)
+  (:import java.io.File
+           [java.nio.file Files LinkOption Paths]
+           [org.apache.commons.io FileUtils])
   (:require [clojure.java.io :refer [copy file]]
             [clojure.java.shell :refer [sh with-sh-dir]]
             [clojure.string :refer [blank? join replace]]
@@ -31,7 +31,7 @@
 (defn deb-path
   "Returns the project directory on Debian systems."
   [project & args]
-  (->> (replace (str (apply file "usr" "lib" (:name project) args))
+  (->> (replace (str (apply file "usr" "lib" (:group project) (:name project) args))
                 (re-pattern (str "^" File/separator)) "")
        (file (:target-path project) "debian") str))
 
